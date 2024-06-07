@@ -1,6 +1,3 @@
-Sure, here is the updated `readme.md` file that includes the new functionality for monitoring connections and ciphers:
-
-```markdown
 # Strongswan-IPSec-Tunnel-Monitoring-Toolkit
 A Toolkit for Strongswan / IPSec Tunnel in Linux machines, Can be used in Zabbix as a script.
 
