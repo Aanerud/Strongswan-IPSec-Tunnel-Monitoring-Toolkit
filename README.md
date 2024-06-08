@@ -1,81 +1,118 @@
-# Strongswan-IPSec-Tunnel-Monitoring-Toolkit
-A Toolkit for Strongswan / IPSec Tunnel in Linux machines, Can be used in Zabbix as a script.
+# Strongswan IPSec Tunnel Monitoring Toolkit
+This toolkit provides a set of scripts to monitor and debug Strongswan IPSec tunnels, making it easier for sysadmins to track and debug VPN connections.
 
-# Usage:
-- Find all tunnels and count them.
-- Determine Packet Loss to each tunnel.
-- Determine RTT (Round Trip Time) for each tunnel.
-- Determine the status of ipsec tunnel in systemd (Openswan and Strongswan).
-- Show details of all connections (Remote EAP identities).
-- Show SSL ciphers used by all connections.
-- Can be used in Zabbix.
+## Author
+- Original Author: danitfk (26/Nov/2018)
+- Current Author: Andreas Martin Aanerud (08/Jun/2024)
 
-# Example usage:
-- Count all tunnels:
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh count_all_tunnels
-1
-```
+## Features
+- Count all running tunnels
+- Check packet loss to the endpoint
+- Determine RTT (Round Trip Time) to the endpoint
+- Check the status of the StrongSwan systemd service
+- Show details of all connections
+- Show SSL ciphers used by a specified user
+- Show connection time of a specified user
+- Discover all active connections
 
-- Determine packet loss to a certain tunnel:
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh packetloss afranet
-0
-```
+## Usage
+You need to declare at least one action. Below are the available commands:
 
-- Determine RTT (Round Trip Time) to a certain tunnel:
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh rtt afranet
-6.214
+### Count all running tunnels
+```sh
+./strongswan-monitor-toolkit.sh count_all_tunnels
 ```
 
-- Determine the openswan/strongswan status in systemd (1=running, 0=stopped, crashed):
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh systemd
-1
-```
-
-- Show details of all connections (Remote EAP identities):
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh connections
-tmp_aaanerud
-skbjoentegaard
+### Check packet loss to the endpoint
+```sh
+./strongswan-monitor-toolkit.sh packetloss [username]
 ```
 
-- Show SSL ciphers used by all connections:
-```
-zabbix@StrongSwan1:/etc/zabbix/scripts$ ./strongswan-monitor-toolkit.sh ciphers
-AES_CBC_256/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/ECP_256
-AES_CBC_256/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/MODP_2048
+### Determine RTT to the endpoint
+```sh
+./strongswan-monitor-toolkit.sh rtt [username]
 ```
 
-# Example Zabbix parameter:
-```
-UserParameter=count_all_tunnels,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh count_all_tunnels
-UserParameter=packetloss_afranet,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh packetloss to-afranet
-UserParameter=packetloss_mobinnet,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh packetloss to-Mobinnet
-UserParameter=rtt_afranet,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh rtt to-afranet
-UserParameter=rtt_mobinnet,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh rtt to-Mobinnet
-UserParameter=systemd,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh systemd
-UserParameter=connections,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh connections
-UserParameter=ciphers,bash /etc/zabbix/scripts/strongswan-monitor-toolkit.sh ciphers
-```
-- Keep in mind to add Zabbix user in sudoers for ipsec and systemd commands like this (/etc/sudoers):
-```
-zabbix  ALL=(ALL) NOPASSWD:/usr/sbin/ipsec, NOPASSWD:/bin/systemctl
+### Check systemd service of StrongSwan
+```sh
+./strongswan-monitor-toolkit.sh systemd
 ```
 
-- Increase Zabbix-Agent timeout to 30 seconds. (/etc/zabbix/zabbix_agentd.conf)
-```
-Timeout=30
-```
-
-# Example Zabbix Graph:
-- Packetloss to a certain tunnel
-![alt Monitor Strongswan ipsec tunnel in Zabbix](https://github.com/danitfk/Strongswan-IPSec-Tunnel-Monitoring-Toolkit/blob/master/graph.png?raw=true)
-
-- RTT to a certain tunnel
-![alt Monitor Strongswan ipsec tunnel in Zabbix](https://github.com/danitfk/Strongswan-IPSec-Tunnel-Monitoring-Toolkit/blob/master/graph2.jpg?raw=true)
+### Show details of all connections
+```sh
+./strongswan-monitor-toolkit.sh connections
 ```
 
-This update includes instructions for the new commands `connections` and `ciphers`, demonstrating how to use them and including them in Zabbix parameters.
+### Show SSL ciphers used by the specified user
+```sh
+./strongswan-monitor-toolkit.sh ciphers [username]
+```
+
+### Show connection time of the specified user
+```sh
+./strongswan-monitor-toolkit.sh connection_time [username]
+```
+
+### Discover all active connections
+```sh
+./strongswan-monitor-toolkit.sh discovery
+```
+
+## Detailed Command Descriptions
+
+### count_all_tunnels
+Counts and outputs the number of currently running tunnels.
+
+### packetloss
+Checks packet loss to the specified user's endpoint and outputs the average packet loss percentage.
+
+#### Example:
+```sh
+./strongswan-monitor-toolkit.sh packetloss john_doe
+```
+
+### rtt
+Determines and outputs the average RTT to the specified user's endpoint.
+
+#### Example:
+```sh
+./strongswan-monitor-toolkit.sh rtt john_doe
+```
+
+### systemd
+Checks the status of the StrongSwan systemd service. Outputs `1` if the service is running, `0` otherwise.
+
+### connections
+Lists details of all connections.
+
+### ciphers
+Shows the SSL ciphers used by the specified user.
+
+#### Example:
+```sh
+./strongswan-monitor-toolkit.sh ciphers john_doe
+```
+
+### connection_time
+Shows the connection time of the specified user.
+
+#### Example:
+```sh
+./strongswan-monitor-toolkit.sh connection_time john_doe
+```
+
+### discovery
+Discovers and outputs all active connections in a JSON format.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contributing
+Feel free to open issues or submit pull requests for any enhancements or bug fixes.
+
+## Acknowledgements
+- Original script by danitfk.
+- Enhanced and maintained by Andreas Martin Aanerud.
+```
+
+This README file covers the purpose of the toolkit, how to use it, and a brief description of each command, providing clear and concise information for any user looking to understand or utilize your script.
