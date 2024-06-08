@@ -1,92 +1,79 @@
 zabbix_export:
   version: '6.4'
-  template_groups:
-    - uuid: 7df96b18c230490a9a0a9e2307226338
-      name: VPN Monitoring
   templates:
-    - uuid: 4ac3591ef0ac43b9b52082aee927443c
-      template: "Template VPN StrongSwan"
-      name: "Template VPN StrongSwan"
-      groups:
-        - name: VPN Monitoring
-      items:
-        - uuid: 9c6144fe62b64222ae26b95ac0f75f1b
-          name: "Number of Running Tunnels"
-          key: "strongswan.count_all_tunnels"
-          type: "Zabbix agent"
-          value_type: FLOAT
-          delay: "60s"
-          description: "Number of running VPN tunnels"
-        - uuid: 9c6144fe62b64222ae26b95ac0f75f1c
-          name: "StrongSwan Service Status"
-          key: "strongswan.systemd"
-          type: "Zabbix agent"
-          value_type: FLOAT
-          delay: "60s"
-          description: "Status of the StrongSwan service"
-      discovery_rules:
-        - uuid: 768334546a4a42a084ba855f1ef7aa7a
-          name: "VPN User Discovery"
-          key: "strongswan.discovery"
-          delay: "60s"
-          description: "Discovery of VPN users"
-          item_prototypes:
-            - uuid: c22ab72429bd48f191255020773037ee
-              name: "User Connection Status for {#USER}"
-              key: "strongswan.user_connection_status[{#USER}]"
-              type: "Zabbix agent"
-              value_type: FLOAT
-              delay: "60s"
-              preprocessing:
-                - type: MAP_VALUE
-                  parameters: "connected=1\ndisconnected=0"
-            - uuid: c22ab72429bd48f191255020773037ef
-              name: "Packet Loss for {#USER}"
-              key: "strongswan.packetloss[{#USER}]"
-              type: "Zabbix agent"
-              value_type: FLOAT
-              delay: "60s"
-              preprocessing:
-                - type: JAVASCRIPT
-                  parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
-            - uuid: c22ab72429bd48f191255020773037f0
-              name: "RTT for {#USER}"
-              key: "strongswan.rtt[{#USER}]"
-              type: "Zabbix agent"
-              value_type: FLOAT
-              delay: "60s"
-              preprocessing:
-                - type: JAVASCRIPT
-                  parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
-            - uuid: c22ab72429bd48f191255020773037f1
-              name: "Cipher for {#USER}"
-              key: "strongswan.ciphers[{#USER}]"
-              type: "Zabbix agent"
-              value_type: TEXT
-              delay: "60s"
-              preprocessing:
-                - type: JAVASCRIPT
-                  parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
-            - uuid: c22ab72429bd48f191255020773037f2
-              name: "Connection Time for {#USER}"
-              key: "strongswan.connection_time[{#USER}]"
-              type: "Zabbix agent"
-              value_type: TEXT
-              delay: "60s"
-              preprocessing:
-                - type: JAVASCRIPT
-                  parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
-      macros:
-        - macro: "{$STRONGSWAN_CONN}"
-          value: "connections"
-      triggers:
-        - uuid: eda08d9f4d8647929cdfafa1f103e649
-          name: "StrongSwan Service Down"
-          expression: "{Template VPN StrongSwan:strongswan.systemd.last()}=0"
-          priority: DISASTER
-          description: "StrongSwan service is down"
-        - uuid: 719ff13fdae14d22b2c3e2309d9b7ea8
-          name: "High Packet Loss for {#USER}"
-          expression: "{Template VPN StrongSwan:strongswan.packetloss[{#USER}].last()}>50"
-          priority: WARNING
-          description: "High packet loss detected for VPN user {#USER}"
+    - template:
+        template: "Template VPN StrongSwan"
+        name: "Template VPN StrongSwan"
+        groups:
+          - name: "VPN Monitoring"
+        items:
+          - name: "Number of Running Tunnels"
+            key: "strongswan.count_all_tunnels"
+            type: "Zabbix agent"
+            value_type: FLOAT
+            delay: "60s"
+            description: "Number of running VPN tunnels"
+          - name: "StrongSwan Service Status"
+            key: "strongswan.systemd"
+            type: "Zabbix agent"
+            value_type: FLOAT
+            delay: "60s"
+            description: "Status of the StrongSwan service"
+        discovery_rules:
+          - name: "VPN User Discovery"
+            key: "strongswan.discovery"
+            delay: "60s"
+            description: "Discovery of VPN users"
+            item_prototypes:
+              - name: "User Connection Status for {#USER}"
+                key: "strongswan.user_connection_status[{#USER}]"
+                type: "Zabbix agent"
+                value_type: FLOAT
+                delay: "60s"
+                preprocessing:
+                  - type: MAP_VALUE
+                    parameters: "connected=1\ndisconnected=0"
+              - name: "Packet Loss for {#USER}"
+                key: "strongswan.packetloss[{#USER}]"
+                type: "Zabbix agent"
+                value_type: FLOAT
+                delay: "60s"
+                preprocessing:
+                  - type: JAVASCRIPT
+                    parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
+              - name: "RTT for {#USER}"
+                key: "strongswan.rtt[{#USER}]"
+                type: "Zabbix agent"
+                value_type: FLOAT
+                delay: "60s"
+                preprocessing:
+                  - type: JAVASCRIPT
+                    parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
+              - name: "Cipher for {#USER}"
+                key: "strongswan.ciphers[{#USER}]"
+                type: "Zabbix agent"
+                value_type: TEXT
+                delay: "60s"
+                preprocessing:
+                  - type: JAVASCRIPT
+                    parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
+              - name: "Connection Time for {#USER}"
+                key: "strongswan.connection_time[{#USER}]"
+                type: "Zabbix agent"
+                value_type: TEXT
+                delay: "60s"
+                preprocessing:
+                  - type: JAVASCRIPT
+                    parameters: "if (value == '0') throw new Error('User not connected'); else return value;"
+        macros:
+          - macro: "{$STRONGSWAN_CONN}"
+            value: "connections"
+        triggers:
+          - name: "StrongSwan Service Down"
+            expression: "{Template VPN StrongSwan:strongswan.systemd.last()}=0"
+            priority: DISASTER
+            description: "StrongSwan service is down"
+          - name: "High Packet Loss for {#USER}"
+            expression: "{Template VPN StrongSwan:strongswan.packetloss[{#USER}].last()}>50"
+            priority: WARNING
+            description: "High packet loss detected for VPN user {#USER}"
