@@ -1,6 +1,6 @@
 #!/bin/bash
-# Author: danitfk
-# Date: 26/Nov/2018
+# Author: aanerud
+# Date: 09/Juni/2024
 
 # Function to print help message
 function print_help {
@@ -178,12 +178,28 @@ fi
 if [[ "$1" == "discovery" ]]; then
     connections=$(get_user_ip_cipher_mappings)
 
-    json=$(echo "$connections" | awk 'BEGIN { ORS=""; print "{"data":[" }
-        { printf "%s{\"{#USER}\":\"%s\", \"{#CONNECTION}\":\"%s\"}", separator, $1, $2; separator="," }
-        END { print "]}"}')
+    json=$(echo "$connections" | awk 'BEGIN { ORS=""; print "{\"data\":[" }
+        { printf "%s{\"{#USER}\":\"%s\", \"{#CONNECTION}\":\"%s\"}", (NR==1 ? "" : ","), $1, $2 }
+        END { print "]}" }')
 
     echo $json
     exit 0
+fi
+
+if [[ "$1" == "user_connection_status" ]]; then
+    if [[ "$2" == "" ]]; then
+        echo "Username is empty."
+        exit 1
+    fi
+    export username="$2"
+    tunnel_ip=$(get_tunnel_ip_by_username "$username")
+    if [[ "$tunnel_ip" == "" ]]; then
+        echo "disconnected"
+        exit 0
+    else
+        echo "connected"
+        exit 0
+    fi
 fi
 
 print_help
