@@ -1,118 +1,139 @@
-# Strongswan IPSec Tunnel Monitoring Toolkit
-This toolkit provides a set of scripts to monitor and debug Strongswan IPSec tunnels, making it easier for sysadmins to track and debug VPN connections.
+# StrongSwan Monitoring Toolkit
 
 ## Author
 - Original Author: danitfk (26/Nov/2018)
 - Current Author: Andreas Martin Aanerud (08/Jun/2024)
 
+This toolkit provides scripts and configuration files to monitor StrongSwan IKEv2 VPN tunnels. It is designed to be used standalone or integrated with Zabbix for comprehensive monitoring and alerting.
+
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Zabbix Integration](#zabbix-integration)
+- [Common Issues](#common-issues)
+
 ## Features
-- Count all running tunnels
-- Check packet loss to the endpoint
-- Determine RTT (Round Trip Time) to the endpoint
-- Check the status of the StrongSwan systemd service
-- Show details of all connections
-- Show SSL ciphers used by a specified user
-- Show connection time of a specified user
-- Discover all active connections
+
+- Count all running VPN tunnels.
+- Display systemd status of StrongSwan.
+- Check packet loss and RTT to the endpoint for specified users.
+- Show connection details, including SSL ciphers and connection time.
+- Zabbix integration for automated monitoring and alerting.
+
+## Requirements
+
+- StrongSwan installed and configured.
+- Zabbix agent installed (for Zabbix integration).
+- Linux environment with `awk`, `ping`, and `sudo` installed.
+
+## Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Aanerud/strongswan-monitor-toolkit.git
+   cd strongswan-monitor-toolkit
+   ```
+
+2. **Copy the script to the appropriate directory:**
+   ```bash
+   sudo cp strongswan-monitor-toolkit.sh /etc/zabbix/scripts/
+   ```
+
+3. **Set the appropriate permissions:**
+   ```bash
+   sudo chown -R root:zabbix /etc/zabbix/
+   sudo chmod -R 750 /etc/zabbix/
+   ```
+
+4. **Edit sudoers file to allow Zabbix to run the script without a password:**
+   ```bash
+   sudo visudo
+   ```
+
+   Add the following lines:
+   ```
+   zabbix ALL=(ALL) NOPASSWD:/usr/sbin/ipsec, NOPASSWD:/bin/systemctl, NOPASSWD:/etc/zabbix/scripts/strongswan-monitor-toolkit.sh
+   ```
 
 ## Usage
-You need to declare at least one action. Below are the available commands:
 
-### Count all running tunnels
-```sh
-./strongswan-monitor-toolkit.sh count_all_tunnels
-```
+### Standalone Script
 
-### Check packet loss to the endpoint
-```sh
-./strongswan-monitor-toolkit.sh packetloss [username]
-```
+To use the script standalone, you can run it with the appropriate action. Below are examples of how to use each action:
 
-### Determine RTT to the endpoint
-```sh
-./strongswan-monitor-toolkit.sh rtt [username]
-```
+- **Count all running tunnels:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh count_all_tunnels
+  ```
 
-### Check systemd service of StrongSwan
-```sh
-./strongswan-monitor-toolkit.sh systemd
-```
+- **Check packet loss for a user:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh packetloss username
+  ```
 
-### Show details of all connections
-```sh
-./strongswan-monitor-toolkit.sh connections
-```
+- **Check RTT for a user:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh rtt username
+  ```
 
-### Show SSL ciphers used by the specified user
-```sh
-./strongswan-monitor-toolkit.sh ciphers [username]
-```
+- **Check systemd service status of StrongSwan:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh systemd
+  ```
 
-### Show connection time of the specified user
-```sh
-./strongswan-monitor-toolkit.sh connection_time [username]
-```
+- **Show details of all connections:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh connections
+  ```
 
-### Discover all active connections
-```sh
-./strongswan-monitor-toolkit.sh discovery
-```
+- **Show SSL ciphers used by a specified user:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh ciphers username
+  ```
 
-## Detailed Command Descriptions
+- **Show connection time of a specified user:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh connection_time username
+  ```
 
-### count_all_tunnels
-Counts and outputs the number of currently running tunnels.
+- **Discover all active connections:**
+  ```bash
+  sudo /etc/zabbix/scripts/strongswan-monitor-toolkit.sh discovery
+  ```
 
-### packetloss
-Checks packet loss to the specified user's endpoint and outputs the average packet loss percentage.
+### Zabbix Integration
 
-#### Example:
-```sh
-./strongswan-monitor-toolkit.sh packetloss john_doe
-```
+1. **Import the Zabbix template:**
+   - Navigate to Zabbix web interface -> Configuration -> Templates -> Import
+   - Select the `zabbix_strongswan.yaml` file and import it.
 
-### rtt
-Determines and outputs the average RTT to the specified user's endpoint.
+2. **Copy the Zabbix user parameters configuration file:**
+   ```bash
+   sudo cp strongswan_userparameters.conf /etc/zabbix/zabbix_agentd.d/
+   ```
 
-#### Example:
-```sh
-./strongswan-monitor-toolkit.sh rtt john_doe
-```
+3. **Restart the Zabbix agent:**
+   ```bash
+   sudo systemctl restart zabbix-agent
+   ```
 
-### systemd
-Checks the status of the StrongSwan systemd service. Outputs `1` if the service is running, `0` otherwise.
+4. **Assign the template to the host in Zabbix:**
+   - Navigate to Zabbix web interface -> Configuration -> Hosts
+   - Select the desired host -> Templates -> Link new templates
+   - Link the `Template VPN StrongSwan` template.
 
-### connections
-Lists details of all connections.
+## Common Issues
 
-### ciphers
-Shows the SSL ciphers used by the specified user.
+- **Permission Denied:**
+  Ensure that the script has the correct permissions and the sudoers file is configured correctly.
 
-#### Example:
-```sh
-./strongswan-monitor-toolkit.sh ciphers john_doe
-```
+- **Zabbix Agent Cannot Execute Script:**
+  Verify that the Zabbix agent has the correct permissions and can execute the script without requiring a password.
 
-### connection_time
-Shows the connection time of the specified user.
+- **Incorrect Data or No Data in Zabbix:**
+  Ensure that the user parameters are correctly configured and that the Zabbix template items and discovery rules are correctly set up.
 
-#### Example:
-```sh
-./strongswan-monitor-toolkit.sh connection_time john_doe
-```
-
-### discovery
-Discovers and outputs all active connections in a JSON format.
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contributing
-Feel free to open issues or submit pull requests for any enhancements or bug fixes.
-
-## Acknowledgements
-- Original script by danitfk.
-- Enhanced and maintained by Andreas Martin Aanerud.
-```
-
-This README file covers the purpose of the toolkit, how to use it, and a brief description of each command, providing clear and concise information for any user looking to understand or utilize your script.
+By following these instructions, you can monitor your StrongSwan IKEv2 VPN tunnels effectively using the provided toolkit and Zabbix integration.
